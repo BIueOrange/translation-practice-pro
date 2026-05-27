@@ -4,7 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>DualLingo</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+// 加载 Supabase SDK，失败时自动切换备用 CDN
+(function loadSupabaseSDK(cdnIndex) {
+  var cdns = ['https://unpkg.com/@supabase/supabase-js@2', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'];
+  if (cdnIndex >= cdns.length) { window._supabaseSDKFailed = true; return; }
+  var s = document.createElement('script');
+  s.src = cdns[cdnIndex];
+  s.onerror = function() { loadSupabaseSDK(cdnIndex + 1); };
+  s.onload = function() { window._supabaseSDKReady = true; };
+  document.head.appendChild(s);
+})(0);
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -284,7 +295,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
     <input type="email" id="authEmail" placeholder="邮箱地址" autocomplete="email" />
     <input type="password" id="authPassword" placeholder="密码" autocomplete="current-password" />
     <div class="auth-error" id="authError"></div>
-    <button class="btn btn-primary" id="authSubmit" onclick="handleAuth()">登录</button>
+    <button class="btn btn-primary" id="authSubmit" onclick="handleAuth()" disabled>加载中...</button>
     <div class="auth-switch"><a id="authSwitch" onclick="toggleAuthMode()">没有账号？注册</a></div>
   </div>
 </div>
@@ -461,18 +472,28 @@ function initSupabase() {
   return false;
 }
 
-// Retry init up to 20 times (10 seconds) for slow CDN
+// Retry init up to 30 times (15 seconds) for slow CDN
 let initAttempts = 0;
+function enableAuthButton() {
+  var btn = document.getElementById('authSubmit');
+  btn.disabled = false;
+  btn.textContent = authMode === 'login' ? '登录' : '注册';
+}
+
 function tryInitSupabase() {
   if (initSupabase()) {
+    enableAuthButton();
     checkAuth().then(session => { if (session) initApp(); });
     return;
   }
   initAttempts++;
-  if (initAttempts < 20) {
+  if (initAttempts < 30) {
     setTimeout(tryInitSupabase, 500);
   } else {
-    showAuth();
+    var btn = document.getElementById('authSubmit');
+    btn.disabled = true;
+    btn.textContent = '服务不可用';
+    document.getElementById('authError').textContent = '网络加载失败，请检查网络连接后刷新页面重试';
   }
 }
 
@@ -498,6 +519,10 @@ async function checkAuth() {
 
 function showAuth() {
   document.getElementById('authOverlay').classList.remove('hidden');
+  // Ensure button is in correct state if SDK already loaded
+  if (supabase) {
+    enableAuthButton();
+  }
 }
 
 function showApp() {
@@ -505,8 +530,9 @@ function showApp() {
 }
 
 function toggleAuthMode() {
+  if (!supabase) return;
   authMode = authMode === 'login' ? 'signup' : 'login';
-  document.getElementById('authSubmit').textContent = authMode === 'login' ? '登录' : '注册';
+  enableAuthButton();
   document.getElementById('authTitle').textContent = authMode === 'login' ? '登录以同步你的学习数据' : '注册新账号';
   document.getElementById('authSwitch').textContent = authMode === 'login' ? '没有账号？注册' : '已有账号？登录';
   document.getElementById('authError').textContent = '';
