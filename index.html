@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中译英翻译练习</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f5f0; --card-bg: #ffffff; --text: #2c2c2c; --text-secondary: #6b6b6b;
+  --primary: #4a90d9; --primary-hover: #357abd; --success: #4caf50; --error: #e74c3c;
+  --warning: #f0ad4e; --border: #e0e0d8; --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --radius: 10px; --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+.app-header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+.app-header h1 { font-size: 18px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+.app-header h1 span { font-size: 22px; }
+.streak-badge { font-size: 13px; color: var(--warning); font-weight: 600; background: #fff8e1; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 20px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; background: var(--card-bg); border-radius: var(--radius); padding: 4px; margin-bottom: 20px; box-shadow: var(--shadow); }
+.tab-btn { flex: 1; padding: 10px 16px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all 0.2s; }
+.tab-btn.active { background: var(--primary); color: #fff; }
+.tab-btn:hover:not(.active) { background: #f0f0eb; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Practice */
+.practice-area { background: var(--card-bg); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+
+.toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.toolbar select, .toolbar button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; background: var(--card-bg); cursor: pointer; }
+.toolbar select:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+.sentence-card { background: linear-gradient(135deg, #fafaf7 0%, #f0f0eb 100%); border: 2px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; position: relative; }
+.sentence-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
+.sentence-text { font-size: 22px; font-weight: 600; line-height: 1.5; letter-spacing: 0.5px; }
+.category-tag { position: absolute; top: 12px; right: 16px; font-size: 11px; padding: 3px 10px; border-radius: 12px; background: var(--primary); color: #fff; }
+
+.translation-input { width: 100%; min-height: 140px; padding: 16px; border: 2px solid var(--border); border-radius: var(--radius); font-size: 16px; line-height: 1.6; resize: vertical; font-family: inherit; transition: border-color 0.2s; }
+.translation-input:focus { outline: none; border-color: var(--primary); }
+
+.action-bar { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-outline { background: var(--card-bg); border: 2px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: #f0f0eb; }
+.btn-ghost { background: transparent; color: var(--text-secondary); padding: 8px 12px; }
+.btn-ghost:hover { background: #f0f0eb; }
+.btn-small { padding: 6px 12px; font-size: 12px; }
+
+/* Comparison */
+.comparison { display: none; margin-top: 20px; }
+.comparison.show { display: block; }
+.comp-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
+.grammar-panel { margin-top: 16px; padding: 16px; border-radius: var(--radius); background: #fafaf7; border: 1px solid var(--border); display: none; }
+.grammar-panel.show { display: block; }
+.grammar-panel h3 { font-size: 14px; margin-bottom: 10px; color: var(--text); }
+.grammar-ok { color: var(--success); font-weight: 600; padding: 8px 0; }
+.grammar-issues { list-style: none; }
+.grammar-issues li { padding: 8px 12px; margin: 4px 0; border-radius: 6px; font-size: 13px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px; }
+.grammar-issues li::before { content: ''; min-width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.issue-error { background: #fff0f0; }
+.issue-error::before { background: var(--error); }
+.issue-warn { background: #fff8e1; }
+.issue-warn::before { background: var(--warning); }
+.issue-info { background: #e8f0fe; }
+.issue-info::before { background: var(--primary); }
+.grammar-highlight { background: #ffcdd2; padding: 1px 2px; border-radius: 2px; text-decoration: underline wavy var(--error); }
+.gfix { color: var(--success); font-weight: 600; }
+
+@media (prefers-color-scheme: dark) {
+  .grammar-panel { background: #2a2a2a; }
+  .issue-error { background: #3e1515; }
+  .issue-warn { background: #3e3000; }
+  .issue-info { background: #152a3e; }
+}
+
+.word-chip { display: inline-block; padding: 4px 10px; margin: 3px; border-radius: 6px; font-size: 14px; font-weight: 500; font-family: var(--font-mono); border: 2px solid transparent; }
+.chip-match { background: #d4edda; border-color: #81c784; color: #2e7d32; }
+.chip-wrong { background: #ffcdd2; border-color: #e57373; color: #c62828; }
+.chip-miss { background: #fff9c4; border-color: #ffd54f; color: #6d5b00; }
+.chip-punct { background: transparent; border: none; padding: 4px 2px; margin: 3px 0; color: var(--text-secondary); }
+.word-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0; padding: 8px 0; min-height: 36px; }
+.word-row-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; padding: 2px 0; }
+.row-your .word-row-label { color: var(--primary); }
+.row-ref .word-row-label { color: var(--success); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: var(--shadow); }
+.stat-number { font-size: 36px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+.weekly-chart { background: var(--card-bg); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.weekly-chart h3 { font-size: 14px; margin-bottom: 16px; color: var(--text-secondary); }
+.chart-bars { display: flex; gap: 8px; align-items: flex-end; height: 120px; }
+.chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.chart-bar { width: 100%; max-width: 40px; border-radius: 4px 4px 0 0; background: var(--primary); transition: height 0.3s; min-height: 2px; }
+.chart-label { font-size: 11px; color: var(--text-secondary); }
+.chart-count { font-size: 11px; font-weight: 600; }
+
+.history-list { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.history-list h3 { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.history-item { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.history-item:last-child { border-bottom: none; }
+.history-date { color: var(--text-secondary); }
+.empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+/* Question bank */
+.bank-toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.bank-toolbar input, .bank-toolbar select, .bank-toolbar textarea { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; font-family: inherit; }
+.bank-toolbar textarea { min-height: 60px; resize: vertical; }
+.add-form { background: var(--card-bg); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); display: none; }
+.add-form.show { display: block; }
+.add-form h3 { font-size: 14px; margin-bottom: 12px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-row input, .form-row select, .form-row textarea { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; font-family: inherit; }
+.form-row textarea { resize: vertical; min-height: 60px; }
+.form-row.full { grid-template-columns: 1fr; }
+
+.sentence-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.sentence-table th { text-align: left; padding: 10px 14px; background: #fafaf7; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
+.sentence-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.sentence-table tr:hover td { background: #fafaf7; }
+.sentence-table .actions { display: flex; gap: 6px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 13px; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.toast.show { opacity: 1; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+  .word-chip { font-size: 13px; padding: 3px 7px; }
+  .sentence-text { font-size: 18px; }
+  .toolbar select, .toolbar button { font-size: 12px; padding: 6px 10px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: 1fr; }
+  .sentence-table { font-size: 11px; }
+  .sentence-table th, .sentence-table td { padding: 6px 8px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a; --card-bg: #252525; --text: #e0e0e0; --text-secondary: #999;
+    --border: #3a3a3a; --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .sentence-card { background: linear-gradient(135deg, #2a2a2a 0%, #222 100%); }
+  .chip-match { background: #1b5e20; border-color: #388e3c; color: #a5d6a7; }
+  .chip-wrong { background: #b71c1c; border-color: #d32f2f; color: #ffcdd2; }
+  .chip-miss { background: #5d4e00; border-color: #9e8d00; color: #fff9c4; }
+  .tab-btn:hover:not(.active) { background: #333; }
+  .btn-outline:hover { background: #333; }
+  .btn-ghost:hover { background: #333; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1><span>&#x1F310;</span> 中译英翻译练习</h1>
+  <div class="streak-badge" id="streakBadge">&#x1F525; 连续 0 天</div>
+</div>
+
+<div class="container">
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="practice">&#x270D;&#xFE0F; 翻译练习</button>
+    <button class="tab-btn" data-tab="stats">&#x1F4CA; 练习统计</button>
+    <button class="tab-btn" data-tab="bank">&#x1F4DA; 题库管理</button>
+  </div>
+
+  <!-- Practice Panel -->
+  <div class="tab-panel active" id="panel-practice">
+    <div class="practice-area">
+      <div class="toolbar">
+        <select id="categoryFilter">
+          <option value="all">全部分类</option>
+          <option value="ielts">雅思</option>
+          <option value="cet">四六级</option>
+          <option value="daily">日常会话</option>
+          <option value="academic">学术</option>
+        </select>
+        <select id="orderMode">
+          <option value="random">随机顺序</option>
+          <option value="sequential">顺序练习</option>
+        </select>
+        <button class="btn btn-outline btn-small" onclick="prevSentence()">&#x25C0; 上一句</button>
+        <button class="btn btn-outline btn-small" onclick="nextSentence()">下一句 &#x25B6;</button>
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:auto;" id="sentenceIndex">1 / 80</span>
+      </div>
+
+      <div class="sentence-card" id="sentenceCard">
+        <div class="sentence-label">&#x1F1E8;&#x1F1F3; 请将以下中文翻译成英文</div>
+        <div class="sentence-text" id="chineseText"></div>
+        <span class="category-tag" id="categoryTag"></span>
+      </div>
+
+      <textarea class="translation-input" id="translationInput"
+        placeholder="在这里输入你的英文翻译...&#10;&#10;快捷键：Ctrl+Enter 提交对比"></textarea>
+
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="submitTranslation()">&#x1F50D; 提交对比</button>
+        <button class="btn btn-outline" onclick="showHint()">&#x1F4A1; 提示</button>
+        <button class="btn btn-ghost" onclick="clearInput()">清空</button>
+      </div>
+
+      <div class="comparison" id="comparison">
+        <div class="comp-title">&#x1F4CB; 对比结果 — <span style="font-weight:400;font-size:12px;"><span style="color:#2e7d32">&#x25A0;匹配</span> <span style="color:#c62828">&#x25A0;你的错误</span> <span style="color:#6d5b00">&#x25A0;参考答案</span></span></div>
+        <div class="row-your"><div class="word-row-label">&#x270D;&#xFE0F; 你的翻译</div><div class="word-row" id="yourTranslation"></div></div>
+        <div class="row-ref"><div class="word-row-label">&#x2728; 参考译文</div><div class="word-row" id="refTranslation"></div></div>
+        <div class="grammar-panel" id="grammarPanel">
+          <h3>&#x1F4DD; 语法分析</h3>
+          <div id="grammarResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Panel -->
+  <div class="tab-panel" id="panel-stats">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number" id="statToday">0</div><div class="stat-label">今日练习</div></div>
+      <div class="stat-card"><div class="stat-number" id="statTodayDuration">0分</div><div class="stat-label">今日时长</div></div>
+      <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div class="stat-label">总计完成</div></div>
+      <div class="stat-card"><div class="stat-number" id="statAvgTime">0秒</div><div class="stat-label">平均每题</div></div>
+      <div class="stat-card"><div class="stat-number" id="statStreak">0</div><div class="stat-label">连续天数</div></div>
+      <div class="stat-card"><div class="stat-number" id="statWeekly">0</div><div class="stat-label">本周练习</div></div>
+    </div>
+    <div class="weekly-chart">
+      <h3>&#x1F4C5; 最近7天练习量</h3>
+      <div class="chart-bars" id="weeklyChart"></div>
+    </div>
+    <br>
+    <div class="history-list">
+      <h3>&#x1F4DD; 最近练习记录</h3>
+      <div id="historyList"><div class="empty-state">暂无记录，快去练习吧</div></div>
+    </div>
+    <br>
+    <button class="btn btn-outline btn-small" onclick="clearStats()" style="color:var(--error)">清除所有统计数据</button>
+  </div>
+
+  <!-- Bank Panel -->
+  <div class="tab-panel" id="panel-bank">
+    <div class="bank-toolbar">
+      <button class="btn btn-primary btn-small" onclick="toggleAddForm()">&#x2795; 添加句子</button>
+      <button class="btn btn-outline btn-small" onclick="importJSON()">&#x1F4E5; 导入 JSON</button>
+      <button class="btn btn-outline btn-small" onclick="exportJSON()">&#x1F4E4; 导出 JSON</button>
+      <button class="btn btn-outline btn-small" onclick="resetToDefault()">&#x1F504; 恢复默认题库</button>
+      <select id="bankCategoryFilter" onchange="renderBank()" style="margin-left:auto;">
+        <option value="all">全部分类</option>
+        <option value="ielts">雅思</option>
+        <option value="cet">四六级</option>
+        <option value="daily">日常会话</option>
+        <option value="academic">学术</option>
+      </select>
+    </div>
+    <div class="add-form" id="addForm">
+      <h3>添加新句子</h3>
+      <div class="form-row">
+        <input type="text" id="newChinese" placeholder="中文句子 *" />
+        <select id="newCategory"><option value="ielts">雅思</option><option value="cet">四六级</option><option value="daily">日常会话</option><option value="academic">学术</option></select>
+      </div>
+      <div class="form-row full">
+        <textarea id="newEnglish" placeholder="英文参考翻译 *"></textarea>
+      </div>
+      <div class="action-bar">
+        <button class="btn btn-primary btn-small" onclick="addSentence()">保存</button>
+        <button class="btn btn-ghost btn-small" onclick="toggleAddForm()">取消</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="sentence-table" id="sentenceTable">
+        <thead><tr><th>分类</th><th>中文</th><th>英文参考</th><th style="width:80px">操作</th></tr></thead>
+        <tbody id="sentenceTableBody"></tbody>
+      </table>
+    </div>
+    <p style="margin-top:8px;font-size:11px;color:var(--text-secondary)">共 <span id="bankCount">0</span> 句</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== DATA ==========
+const DEFAULT_SENTENCES = [
+  // IELTS
+  { id: 'i1', chinese: '随着科技的快速发展，人们的生活方式发生了巨大的变化。', english: 'With the rapid development of technology, people\'s lifestyles have undergone tremendous changes.', category: 'ielts' },
+  { id: 'i2', chinese: '政府应该采取有效措施来保护环境，减少污染。', english: 'The government should take effective measures to protect the environment and reduce pollution.', category: 'ielts' },
+  { id: 'i3', chinese: '越来越多的人选择出国留学，以获得更好的教育资源。', english: 'An increasing number of people choose to study abroad to gain access to better educational resources.', category: 'ielts' },
+  { id: 'i4', chinese: '全球化促进了各国之间的经济合作与文化交流。', english: 'Globalization has promoted economic cooperation and cultural exchange between countries.', category: 'ielts' },
+  { id: 'i5', chinese: '社交媒体对年轻人的社交方式产生了深远的影响。', english: 'Social media has had a profound impact on the way young people socialize.', category: 'ielts' },
+  { id: 'i6', chinese: '城市化进程带来了许多挑战，如住房短缺和交通拥堵。', english: 'The process of urbanization has brought many challenges, such as housing shortages and traffic congestion.', category: 'ielts' },
+  { id: 'i7', chinese: '人工智能将在未来的就业市场中扮演重要角色。', english: 'Artificial intelligence will play an important role in the future job market.', category: 'ielts' },
+  { id: 'i8', chinese: '平衡工作与生活对现代人来说是一个巨大的挑战。', english: 'Balancing work and life is a huge challenge for modern people.', category: 'ielts' },
+  { id: 'i9', chinese: '旅游业的发展为当地经济带来了可观的收入。', english: 'The development of tourism has brought considerable income to the local economy.', category: 'ielts' },
+  { id: 'i10', chinese: '教育是消除贫困最有效的途径之一。', english: 'Education is one of the most effective ways to eliminate poverty.', category: 'ielts' },
+  { id: 'i11', chinese: '网络购物已经改变了人们的消费习惯。', english: 'Online shopping has changed people\'s consumption habits.', category: 'ielts' },
+  { id: 'i12', chinese: '可再生能源的利用是应对气候变化的关键。', english: 'The use of renewable energy is key to tackling climate change.', category: 'ielts' },
+  { id: 'i13', chinese: '饮食习惯的改变导致肥胖率持续上升。', english: 'Changes in dietary habits have led to a continuous rise in obesity rates.', category: 'ielts' },
+  { id: 'i14', chinese: '保护文化遗产对于维护民族认同至关重要。', english: 'Protecting cultural heritage is essential for maintaining national identity.', category: 'ielts' },
+  { id: 'i15', chinese: '远程办公在疫情后变得更加普遍。', english: 'Remote work has become more common after the pandemic.', category: 'ielts' },
+  { id: 'i16', chinese: '人口老龄化给社会保障体系带来了巨大压力。', english: 'The aging population has put enormous pressure on the social security system.', category: 'ielts' },
+  { id: 'i17', chinese: '公共交通工具的使用有助于减少碳排放。', english: 'The use of public transportation helps reduce carbon emissions.', category: 'ielts' },
+  { id: 'i18', chinese: '终身学习的理念在现代社会越来越重要。', english: 'The concept of lifelong learning is becoming increasingly important in modern society.', category: 'ielts' },
+  { id: 'i19', chinese: '国际合作在解决全球性问题方面发挥着关键作用。', english: 'International cooperation plays a crucial role in solving global issues.', category: 'ielts' },
+  { id: 'i20', chinese: '广告对消费者的购买决策有重要影响。', english: 'Advertising has a significant influence on consumers\' purchasing decisions.', category: 'ielts' },
+
+  // CET
+  { id: 'c1', chinese: '中国传统文化源远流长，博大精深。', english: 'Traditional Chinese culture has a long history and is profound and extensive.', category: 'cet' },
+  { id: 'c2', chinese: '端午节是中国最重要的传统节日之一。', english: 'The Dragon Boat Festival is one of the most important traditional festivals in China.', category: 'cet' },
+  { id: 'c3', chinese: '大学生应该积极参加社会实践活动。', english: 'College students should actively participate in social practice activities.', category: 'cet' },
+  { id: 'c4', chinese: '近年来，中国的经济持续快速增长。', english: 'In recent years, China\'s economy has continued to grow rapidly.', category: 'cet' },
+  { id: 'c5', chinese: '阅读是提高语言能力的最佳方法之一。', english: 'Reading is one of the best ways to improve language ability.', category: 'cet' },
+  { id: 'c6', chinese: '中国书法是一门独特的艺术形式。', english: 'Chinese calligraphy is a unique art form.', category: 'cet' },
+  { id: 'c7', chinese: '互联网极大地改变了信息传播的方式。', english: 'The Internet has greatly changed the way information is disseminated.', category: 'cet' },
+  { id: 'c8', chinese: '京剧被誉为中国的"国粹"。', english: 'Peking Opera is known as the quintessence of Chinese culture.', category: 'cet' },
+  { id: 'c9', chinese: '许多年轻人喜欢在业余时间参加志愿者活动。', english: 'Many young people enjoy participating in volunteer activities in their spare time.', category: 'cet' },
+  { id: 'c10', chinese: '保持积极的心态对成功至关重要。', english: 'Maintaining a positive attitude is crucial to success.', category: 'cet' },
+  { id: 'c11', chinese: '中国高铁技术的发展令世界瞩目。', english: 'The development of China\'s high-speed rail technology has attracted worldwide attention.', category: 'cet' },
+  { id: 'c12', chinese: '学习一门外语需要持之以恒的努力。', english: 'Learning a foreign language requires persistent effort.', category: 'cet' },
+  { id: 'c13', chinese: '移动支付在中国已经非常普及。', english: 'Mobile payment has become very widespread in China.', category: 'cet' },
+  { id: 'c14', chinese: '良好的时间管理能力是提高效率的关键。', english: 'Good time management skills are key to improving efficiency.', category: 'cet' },
+  { id: 'c15', chinese: '中国菜以其丰富的口味和多样的烹饪方法而闻名。', english: 'Chinese cuisine is famous for its rich flavors and diverse cooking methods.', category: 'cet' },
+  { id: 'c16', chinese: '团队合作在现代工作中不可或缺。', english: 'Teamwork is indispensable in modern work.', category: 'cet' },
+  { id: 'c17', chinese: '共享单车改变了城市居民的出行方式。', english: 'Shared bikes have changed the way urban residents travel.', category: 'cet' },
+  { id: 'c18', chinese: '健康的生活方式包括合理饮食和规律锻炼。', english: 'A healthy lifestyle includes a balanced diet and regular exercise.', category: 'cet' },
+  { id: 'c19', chinese: '丝绸之路促进了东西方之间的贸易往来。', english: 'The Silk Road promoted trade between the East and the West.', category: 'cet' },
+  { id: 'c20', chinese: '失败是成功之母。', english: 'Failure is the mother of success.', category: 'cet' },
+
+  // Daily
+  { id: 'd1', chinese: '你能告诉我最近的银行怎么走吗？', english: 'Could you tell me how to get to the nearest bank?', category: 'daily' },
+  { id: 'd2', chinese: '我今天有点不舒服，想请一天假。', english: 'I\'m feeling a bit unwell today and would like to take a day off.', category: 'daily' },
+  { id: 'd3', chinese: '很高兴认识你，希望我们能保持联系。', english: 'Nice to meet you. I hope we can keep in touch.', category: 'daily' },
+  { id: 'd4', chinese: '这个周末你有什么安排吗？', english: 'Do you have any plans for this weekend?', category: 'daily' },
+  { id: 'd5', chinese: '抱歉让你久等了。', english: 'Sorry to have kept you waiting.', category: 'daily' },
+  { id: 'd6', chinese: '你觉得这部电影怎么样？', english: 'What do you think of this movie?', category: 'daily' },
+  { id: 'd7', chinese: '我需要预订一张去北京的机票。', english: 'I need to book a flight ticket to Beijing.', category: 'daily' },
+  { id: 'd8', chinese: '谢谢你的帮助，我真的很感激。', english: 'Thank you for your help. I really appreciate it.', category: 'daily' },
+  { id: 'd9', chinese: '我每天花大约一个小时锻炼身体。', english: 'I spend about an hour exercising every day.', category: 'daily' },
+  { id: 'd10', chinese: '这附近有好的中餐馆吗？', english: 'Is there a good Chinese restaurant near here?', category: 'daily' },
+  { id: 'd11', chinese: '我今天早上错过了公交车，所以迟到了。', english: 'I missed the bus this morning, so I was late.', category: 'daily' },
+  { id: 'd12', chinese: '你想喝咖啡还是茶？', english: 'Would you like coffee or tea?', category: 'daily' },
+  { id: 'd13', chinese: '这件衣服多少钱？可以试穿吗？', english: 'How much is this piece of clothing? Can I try it on?', category: 'daily' },
+  { id: 'd14', chinese: '请帮我把这些行李搬到房间。', english: 'Please help me carry this luggage to the room.', category: 'daily' },
+  { id: 'd15', chinese: '我们下次什么时候见面？', english: 'When shall we meet next time?', category: 'daily' },
+  { id: 'd16', chinese: '我最近在学做菜，挺有意思的。', english: 'I\'ve been learning to cook recently, and it\'s quite interesting.', category: 'daily' },
+  { id: 'd17', chinese: '天气预报说明天会下雨。', english: 'The weather forecast says it will rain tomorrow.', category: 'daily' },
+  { id: 'd18', chinese: '你能推荐一些旅游景点吗？', english: 'Could you recommend some tourist attractions?', category: 'daily' },
+  { id: 'd19', chinese: '我在找一份兼职工作。', english: 'I\'m looking for a part-time job.', category: 'daily' },
+  { id: 'd20', chinese: '祝你旅途愉快！', english: 'Have a nice trip!', category: 'daily' },
+
+  // Academic
+  { id: 'a1', chinese: '本研究旨在探讨社交媒体使用与青少年心理健康之间的关系。', english: 'This study aims to explore the relationship between social media use and adolescent mental health.', category: 'academic' },
+  { id: 'a2', chinese: '实验结果表明，温度对反应速率有显著影响。', english: 'The experimental results indicate that temperature has a significant effect on reaction rate.', category: 'academic' },
+  { id: 'a3', chinese: '文献综述是任何学术研究的重要组成部分。', english: 'A literature review is an essential component of any academic research.', category: 'academic' },
+  { id: 'a4', chinese: '数据分析采用了定性和定量相结合的方法。', english: 'The data analysis employed a combination of qualitative and quantitative methods.', category: 'academic' },
+  { id: 'a5', chinese: '这一理论的提出为后续研究奠定了基础。', english: 'The proposal of this theory laid the foundation for subsequent research.', category: 'academic' },
+  { id: 'a6', chinese: '该模型能够准确预测市场趋势。', english: 'This model can accurately predict market trends.', category: 'academic' },
+  { id: 'a7', chinese: '研究样本包括来自不同年龄段的500名参与者。', english: 'The research sample included 500 participants from different age groups.', category: 'academic' },
+  { id: 'a8', chinese: '我们需要进一步研究来验证这一假设。', english: 'Further research is needed to verify this hypothesis.', category: 'academic' },
+  { id: 'a9', chinese: '这个发现对临床实践具有重要意义。', english: 'This finding has important implications for clinical practice.', category: 'academic' },
+  { id: 'a10', chinese: '相关性不等于因果关系。', english: 'Correlation does not equal causation.', category: 'academic' },
+  { id: 'a11', chinese: '本文探讨了气候变化对农业生产的影响。', english: 'This paper examines the impact of climate change on agricultural production.', category: 'academic' },
+  { id: 'a12', chinese: '研究结果表明，早期干预可以显著改善预后。', english: 'The findings suggest that early intervention can significantly improve prognosis.', category: 'academic' },
+  { id: 'a13', chinese: '在得出最终结论之前，需要考虑一些局限性。', english: 'Several limitations need to be considered before drawing final conclusions.', category: 'academic' },
+  { id: 'a14', chinese: '该算法在图像识别任务中表现出色。', english: 'The algorithm performs exceptionally well in image recognition tasks.', category: 'academic' },
+  { id: 'a15', chinese: '跨学科研究为复杂问题提供了新的视角。', english: 'Interdisciplinary research provides new perspectives on complex problems.', category: 'academic' },
+  { id: 'a16', chinese: '统计分析显示两组之间存在显著差异。', english: 'Statistical analysis revealed a significant difference between the two groups.', category: 'academic' },
+  { id: 'a17', chinese: '同行评审是确保研究质量的重要机制。', english: 'Peer review is an important mechanism for ensuring research quality.', category: 'academic' },
+  { id: 'a18', chinese: '这些数据支持我们最初的假设。', english: 'These data support our initial hypothesis.', category: 'academic' },
+  { id: 'a19', chinese: '伦理考量是任何涉及人类受试者研究的核心。', english: 'Ethical considerations are central to any research involving human subjects.', category: 'academic' },
+  { id: 'a20', chinese: '未来的研究方向包括扩大样本量和进行纵向研究。', english: 'Future research directions include expanding the sample size and conducting longitudinal studies.', category: 'academic' },
+];
+
+const CATEGORY_NAMES = { ielts: '雅思', cet: '四六级', daily: '日常会话', academic: '学术' };
+const STORAGE_KEY_SENTENCES = 'translation_practice_sentences';
+const STORAGE_KEY_STATS = 'translation_practice_stats';
+const STORAGE_KEY_HISTORY = 'translation_practice_history';
+const STORAGE_KEY_INDEX = 'translation_practice_index';
+
+// ========== STATE ==========
+let sentences = [];
+let currentIndex = 0;
+let filteredIndices = [];
+let stats = { totalCompleted: 0, totalDuration: 0, streak: 0, lastPracticeDate: null, dailyCounts: {}, dailyDurations: {} };
+let history = [];
+let practiceStartTime = 0;
+
+// ========== INIT ==========
+function init() {
+  try {
+  loadSentences();
+  loadStats();
+  loadHistory();
+  updateFilteredIndices();
+  updateStreak();
+  loadCurrentIndex();
+  renderPractice();
+  renderStats();
+  renderBank();
+  renderWeeklyChart();
+  renderHistory();
+  } catch (e) {
+    console.error('Init error:', e);
+    // Reset corrupted data and retry
+    localStorage.removeItem(STORAGE_KEY_SENTENCES);
+    localStorage.removeItem(STORAGE_KEY_STATS);
+    localStorage.removeItem(STORAGE_KEY_HISTORY);
+    localStorage.removeItem(STORAGE_KEY_INDEX);
+    sentences = JSON.parse(JSON.stringify(DEFAULT_SENTENCES));
+    stats = defaultStats();
+    history = [];
+    saveSentences();
+    saveStats();
+    saveHistory();
+    updateFilteredIndices();
+    renderPractice();
+    renderStats();
+    renderBank();
+    renderWeeklyChart();
+    renderHistory();
+  }
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      try {
+        if (btn.dataset.tab === 'stats') { renderStats(); renderWeeklyChart(); renderHistory(); }
+        if (btn.dataset.tab === 'bank') renderBank();
+      } catch (e) { console.error('Tab render error:', e); }
+    });
+  });
+
+  // Keyboard shortcut
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      submitTranslation();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextSentence();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevSentence();
+    }
+  });
+
+  // Category filter
+  document.getElementById('categoryFilter').addEventListener('change', () => {
+    updateFilteredIndices();
+    currentIndex = 0;
+    renderPractice();
+  });
+
+  document.getElementById('orderMode').addEventListener('change', () => {
+    updateFilteredIndices();
+    currentIndex = 0;
+    renderPractice();
+  });
+}
+
+// ========== SENTENCE MANAGEMENT ==========
+function loadSentences() {
+  const stored = localStorage.getItem(STORAGE_KEY_SENTENCES);
+  if (stored) {
+    try { sentences = JSON.parse(stored); } catch (e) { sentences = []; }
+  }
+  if (!sentences || sentences.length === 0) {
+    sentences = JSON.parse(JSON.stringify(DEFAULT_SENTENCES));
+    saveSentences();
+  }
+}
+
+function saveSentences() {
+  localStorage.setItem(STORAGE_KEY_SENTENCES, JSON.stringify(sentences));
+}
+
+function getFilteredSentences() {
+  const cat = document.getElementById('categoryFilter').value;
+  if (cat === 'all') return [...sentences];
+  return sentences.filter(s => s.category === cat);
+}
+
+function updateFilteredIndices() {
+  const filtered = getFilteredSentences();
+  filteredIndices = filtered.map(s => s.id);
+  if (document.getElementById('orderMode').value === 'random') {
+    shuffleArray(filteredIndices);
+  }
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function getCurrentSentence() {
+  if (filteredIndices.length === 0) return null;
+  const id = filteredIndices[currentIndex % filteredIndices.length];
+  return sentences.find(s => s.id === id);
+}
+
+function loadCurrentIndex() {
+  const stored = localStorage.getItem(STORAGE_KEY_INDEX);
+  if (stored !== null) currentIndex = parseInt(stored) || 0;
+}
+
+function saveCurrentIndex() {
+  localStorage.setItem(STORAGE_KEY_INDEX, currentIndex.toString());
+}
+
+// ========== RENDER PRACTICE ==========
+function renderPractice() {
+  const sentence = getCurrentSentence();
+  if (!sentence) {
+    document.getElementById('chineseText').textContent = '题库为空，请先添加句子';
+    document.getElementById('categoryTag').textContent = '';
+    document.getElementById('sentenceIndex').textContent = '0 / 0';
+    return;
+  }
+  document.getElementById('chineseText').textContent = sentence.chinese;
+  document.getElementById('categoryTag').textContent = CATEGORY_NAMES[sentence.category] || sentence.category;
+  document.getElementById('sentenceIndex').textContent =
+    `${(currentIndex % Math.max(1, filteredIndices.length)) + 1} / ${filteredIndices.length}`;
+  document.getElementById('comparison').classList.remove('show');
+  document.getElementById('grammarPanel').classList.remove('show');
+  document.getElementById('translationInput').value = '';
+  document.getElementById('translationInput').focus();
+  practiceStartTime = Date.now();
+  saveCurrentIndex();
+}
+
+function nextSentence() {
+  if (filteredIndices.length === 0) return;
+  currentIndex++;
+  renderPractice();
+}
+
+function prevSentence() {
+  if (filteredIndices.length === 0) return;
+  currentIndex = Math.max(0, currentIndex - 1);
+  renderPractice();
+}
+
+function showHint() {
+  const sentence = getCurrentSentence();
+  if (!sentence) return;
+  const words = sentence.english.split(' ');
+  const hintCount = Math.max(1, Math.floor(words.length * 0.3));
+  const hintWords = [...words].sort(() => Math.random() - 0.5).slice(0, hintCount);
+  document.getElementById('translationInput').value = '提示词汇: ' + hintWords.join(', ');
+  showToast('已显示提示词汇');
+}
+
+function clearInput() {
+  document.getElementById('translationInput').value = '';
+}
+
+// ========== SUBMIT & COMPARE ==========
+function tokenize(text) {
+  // Split into words and punctuation as separate tokens
+  const tokens = [];
+  const parts = text.split(/([.,!?;:'"()]|\s+)/g);
+  for (const p of parts) {
+    const trimmed = p.trim();
+    if (trimmed.length === 0) continue;
+    if (/^[.,!?;:'"()]$/.test(trimmed)) {
+      tokens.push({ text: trimmed, type: 'punct' });
+    } else {
+      tokens.push({ text: trimmed, type: 'word' });
+    }
+  }
+  return tokens;
+}
+
+function buildLCS(a, b) {
+  // Returns LCS matrix between two sequences (comparing lowercase cleaned text)
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const aClean = a[i - 1].text.replace(/[.,!?;:'"]/g, '').toLowerCase();
+      const bClean = b[j - 1].text.replace(/[.,!?;:'"]/g, '').toLowerCase();
+      if (aClean === bClean) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+  return dp;
+}
+
+function alignSequences(userTokens, refTokens) {
+  // Use LCS to align user tokens against reference tokens
+  const dp = buildLCS(userTokens, refTokens);
+
+  // Backtrack to find which user tokens match which ref tokens
+  const userMatch = new Array(userTokens.length).fill(-1);
+  const refMatch = new Array(refTokens.length).fill(-1);
+
+  let i = userTokens.length, j = refTokens.length;
+  while (i > 0 && j > 0) {
+    const uClean = userTokens[i - 1].text.replace(/[.,!?;:'"]/g, '').toLowerCase();
+    const rClean = refTokens[j - 1].text.replace(/[.,!?;:'"]/g, '').toLowerCase();
+    if (uClean === rClean) {
+      userMatch[i - 1] = j - 1;
+      refMatch[j - 1] = i - 1;
+      i--; j--;
+    } else if (dp[i - 1][j] > dp[i][j - 1]) {
+      i--;
+    } else {
+      j--;
+    }
+  }
+
+  return { userMatch, refMatch };
+}
+
+function buildWordChips(tokens, matchTarget, type) {
+  // type: 'your' or 'ref'
+  return tokens.map((t, idx) => {
+    if (t.type === 'punct') {
+      return `<span class="word-chip chip-punct">${escapeHtml(t.text)}</span>`;
+    }
+    const matched = matchTarget[idx];
+    if (type === 'your') {
+      const cls = matched >= 0 ? 'chip-match' : 'chip-wrong';
+      return `<span class="word-chip ${cls}">${escapeHtml(t.text)}</span>`;
+    } else {
+      const cls = matched >= 0 ? 'chip-match' : 'chip-miss';
+      return `<span class="word-chip ${cls}">${escapeHtml(t.text)}</span>`;
+    }
+  }).join('');
+}
+
+function submitTranslation() {
+  const sentence = getCurrentSentence();
+  if (!sentence) return;
+  const userInput = document.getElementById('translationInput').value.trim();
+  if (!userInput) { showToast('请先输入你的翻译'); return; }
+
+  const comparison = document.getElementById('comparison');
+  comparison.classList.add('show');
+
+  const userTokens = tokenize(userInput);
+  const refTokens = tokenize(sentence.english);
+
+  const { userMatch, refMatch } = alignSequences(userTokens, refTokens);
+
+  document.getElementById('yourTranslation').innerHTML = buildWordChips(userTokens, userMatch, 'your');
+  document.getElementById('refTranslation').innerHTML = buildWordChips(refTokens, refMatch, 'ref');
+
+  // Record practice with duration
+  const duration = Math.round((Date.now() - practiceStartTime) / 1000);
+  recordPractice(sentence, userInput, duration);
+
+  // Grammar analysis
+  analyzeGrammar(userInput);
+
+  // Scroll to comparison
+  comparison.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ========== GRAMMAR ANALYSIS ==========
+function analyzeGrammar(text) {
+  const panel = document.getElementById('grammarPanel');
+  const result = document.getElementById('grammarResult');
+  panel.classList.add('show');
+
+  const issues = [];
+
+  // Normalize: strip leading/trailing whitespace, collapse spaces
+  const trimmed = text.trim();
+
+  // 1. Capitalization check
+  if (trimmed.length > 0 && /[a-z]/.test(trimmed[0]) && trimmed[0] === trimmed[0].toLowerCase()) {
+    issues.push({ type: 'error', msg: `句首应大写：<b>"${trimmed[0].toUpperCase()}${trimmed.slice(1, Math.min(20, trimmed.length))}..."</b>`, rule: '首字母大写' });
+  }
+
+  // 2. A vs An
+  const aAnRe = /\ba\s+([aeiou]|hour|honest|heir|honor)/gi;
+  let m;
+  while ((m = aAnRe.exec(trimmed)) !== null) {
+    issues.push({ type: 'error', msg: `<b>"a ${m[1]}"</b> 应改为 <b>"<span class="gfix">an ${m[1]}</span>"</b> — 元音音素前用 an`, rule: 'a / an' });
+  }
+  const anAR = /\ban\s+([bcdfghjklmnpqrstvwxyz])/gi;
+  while ((m = anAR.exec(trimmed)) !== null) {
+    if (/^[aeiou]/i.test(m[1])) continue;
+    issues.push({ type: 'error', msg: `<b>"an ${m[1]}"</b> 应改为 <b>"<span class="gfix">a ${m[1]}</span>"</b> — 辅音音素前用 a`, rule: 'a / an' });
+  }
+
+  // 3. Common confusions
+  const confusions = [
+    { re: /\btheir\b/gi, check: 'there', fix: "they're / there / their", desc: "注意区分 their(他们的) / there(那里) / they're(他们是)" },
+    { re: /\byour\b/gi, check: "you're", fix: "you're / your", desc: "注意区分 your(你的) / you're(你是)" },
+    { re: /\bits\b/gi, check: "it's", fix: "it's / its", desc: "注意区分 its(它的) / it's(它是)" },
+    { re: /\bto\s+(much|many|few|little|big|small|fast|slow|far|long|short|high|low|early|late|often|quick)/gi, fix: 'too + adj', desc: '"to" 可能应为 "too"（太……）' },
+    { re: /\bwere\b/gi, check: "we're", fix: "we're / were", desc: "注意区分 were(是/was的过去式) / we're(我们是)" },
+  ];
+
+  // Simple check: flag common confusion words for review
+  const lowerText = trimmed.toLowerCase();
+  if (/\b(he|she|it)\s+(go|come|run|walk|talk|speak|eat|drink|sleep|work|play|like|love|hate|want|need|have|do|make|take|give|tell|say|know|think|feel|find|get)\b/i.test(trimmed)) {
+    const svRe = /\b(he|she|it)\s+(go|come|run|walk|talk|speak|eat|drink|sleep|work|play|like|love|hate|want|need|have|do|make|take|give|tell|say|know|think|feel|find|get)\b/gi;
+    while ((m = svRe.exec(trimmed)) !== null) {
+      const verb = m[2].toLowerCase();
+      const correct = verb === 'have' ? 'has' : verb === 'do' ? 'does' : verb === 'go' ? 'goes' : verb + 's';
+      issues.push({ type: 'warn', msg: `<b>"${m[0]}"</b> — 第三人称单数可能需要加 -s/-es：<b>"<span class="gfix">${m[1]} ${correct}</span>"</b>`, rule: '主谓一致' });
+    }
+  }
+
+  // 4. Double negatives
+  if (/\b(not?|n't|never|no|nothing|nobody|nowhere)\b.*\b(not?|n't|never|no|nothing|nobody|nowhere)\b/i.test(trimmed)) {
+    issues.push({ type: 'warn', msg: '检测到双重否定，英语中双重否定可能表达肯定含义，请检查是否意图表否定', rule: '双重否定' });
+  }
+
+  // 5. Missing verb (very basic check - if no common verb patterns found)
+  const hasVerb = /\b(is|are|was|were|be|been|am|have|has|had|do|does|did|will|would|can|could|shall|should|may|might|must|go|come|get|make|take|give|see|know|think|say|tell|find|feel|want|need|like|love|work|play|run|walk|talk|speak|eat|drink|sleep|live|use|try|help|let|keep|put|set|show|mean|seem|become|leave|bring|call|ask|move|turn|start|stop|change|develop|increase|decrease|produce|provide|include|involve|believe|consider|expect|suggest|recommend|require|allow|enable|ensure|support|promote|improve|reduce|create|build|establish|maintain)\b/i.test(trimmed);
+  if (!hasVerb && trimmed.split(/\s+/).length > 2) {
+    issues.push({ type: 'info', msg: '未检测到常见动词，请检查句子是否缺少谓语动词', rule: '缺少动词' });
+  }
+
+  // 6. Count word differences vs reference as grammar hint
+  const userWords = trimmed.split(/\s+/).filter(w => w.length > 0 && !/^[.,!?;:'"]$/.test(w));
+  const refWords = getCurrentSentence()?.english.split(/\s+/).filter(w => w.length > 0 && !/^[.,!?;:'"]$/.test(w)) || [];
+  if (userWords.length > 0 && refWords.length > 0) {
+    const diff = userWords.length - refWords.length;
+    if (Math.abs(diff) >= 5) {
+      issues.push({ type: 'info', msg: `你的翻译有 ${userWords.length} 个词，参考译文有 ${refWords.length} 个词（差值 ${Math.abs(diff)}），请检查是否遗漏或多余了内容`, rule: '词数差异' });
+    }
+  }
+
+  // 7. Repeated words
+  const wordList = trimmed.toLowerCase().split(/\s+/);
+  for (let i = 0; i < wordList.length - 1; i++) {
+    if (wordList[i] === wordList[i + 1] && wordList[i].length > 1 && !/^[.,!?;:'"]$/.test(wordList[i])) {
+      issues.push({ type: 'warn', msg: `检测到重复词：<b>"${escapeHtml(wordList[i])}"</b> 连续出现了两次`, rule: '重复词' });
+    }
+  }
+
+  // 8. Spaces before punctuation
+  if (/\s+[.,!?;:'"]/g.test(trimmed)) {
+    issues.push({ type: 'info', msg: '标点符号前不应有空格（英文中逗号、句号等紧跟前一个词）', rule: '标点空格' });
+  }
+
+  // Render
+  if (issues.length === 0) {
+    result.innerHTML = '<div class="grammar-ok">&#x2705; 未检测到明显语法问题，翻译很棒！</div>';
+  } else {
+    const errors = issues.filter(i => i.type === 'error');
+    const warns = issues.filter(i => i.type === 'warn');
+    const infos = issues.filter(i => i.type === 'info');
+
+    let html = '';
+    if (errors.length > 0) {
+      html += `<p style="font-size:12px;color:var(--error);font-weight:600;margin-bottom:6px;">&#x26A0;&#xFE0F; 错误 (${errors.length})</p>`;
+      html += '<ul class="grammar-issues">' + errors.map(i => `<li class="issue-error"><span style="font-size:10px;color:var(--text-secondary);background:#eee;padding:1px 6px;border-radius:3px;flex-shrink:0;">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
+    }
+    if (warns.length > 0) {
+      html += `<p style="font-size:12px;color:var(--warning);font-weight:600;margin-bottom:6px;">&#x26A0;&#xFE0F; 警告 (${warns.length})</p>`;
+      html += '<ul class="grammar-issues">' + warns.map(i => `<li class="issue-warn"><span style="font-size:10px;color:var(--text-secondary);background:#eee;padding:1px 6px;border-radius:3px;flex-shrink:0;">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
+    }
+    if (infos.length > 0) {
+      html += `<p style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:6px;">&#x2139;&#xFE0F; 建议 (${infos.length})</p>`;
+      html += '<ul class="grammar-issues">' + infos.map(i => `<li class="issue-info"><span style="font-size:10px;color:var(--text-secondary);background:#eee;padding:1px 6px;border-radius:3px;flex-shrink:0;">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
+    }
+    result.innerHTML = html;
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ========== STATS ==========
+function loadStats() {
+  const stored = localStorage.getItem(STORAGE_KEY_STATS);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      stats = { ...defaultStats(), ...parsed };
+      // Migrate old data: ensure dailyDurations exists
+      if (!stats.dailyDurations) stats.dailyDurations = {};
+      if (stats.totalDuration === undefined) stats.totalDuration = 0;
+    } catch (e) { stats = defaultStats(); }
+  } else {
+    stats = defaultStats();
+  }
+}
+
+function formatDuration(seconds) {
+  if (seconds < 60) return seconds + '秒';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? m + '分' + s + '秒' : m + '分';
+}
+
+function defaultStats() {
+  return { totalCompleted: 0, totalDuration: 0, streak: 0, lastPracticeDate: null, dailyCounts: {}, dailyDurations: {} };
+}
+
+function saveStats() {
+  localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
+}
+
+function loadHistory() {
+  const stored = localStorage.getItem(STORAGE_KEY_HISTORY);
+  if (stored) {
+    try { history = JSON.parse(stored); } catch (e) { history = []; }
+  }
+}
+
+function saveHistory() {
+  // Keep last 100 records
+  history = history.slice(0, 100);
+  localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+}
+
+function recordPractice(sentence, userTranslation, duration) {
+  const today = getDateString();
+  stats.totalCompleted++;
+  stats.totalDuration += (duration || 0);
+  stats.dailyCounts[today] = (stats.dailyCounts[today] || 0) + 1;
+  stats.dailyDurations[today] = (stats.dailyDurations[today] || 0) + (duration || 0);
+  stats.lastPracticeDate = today;
+  updateStreak();
+  saveStats();
+
+  history.unshift({
+    date: today,
+    chinese: sentence.chinese.substring(0, 30),
+    userTranslation: userTranslation.substring(0, 50),
+    category: sentence.category,
+    duration: duration || 0
+  });
+  saveHistory();
+
+  const elToday = document.getElementById('statToday');
+  const elTotal = document.getElementById('statTotal');
+  const elTodayDur = document.getElementById('statTodayDuration');
+  if (elToday) elToday.textContent = stats.dailyCounts[today] || 0;
+  if (elTotal) elTotal.textContent = stats.totalCompleted;
+  if (elTodayDur) elTodayDur.textContent = formatDuration(stats.dailyDurations[today] || 0);
+}
+
+function updateStreak() {
+  const today = getDateString();
+  const yesterday = getDateString(-1);
+  const lastDate = stats.lastPracticeDate;
+
+  if (lastDate === today) {
+    // Already practiced today, keep current streak
+  } else if (lastDate === yesterday) {
+    stats.streak++;
+  } else if (lastDate && lastDate < yesterday) {
+    stats.streak = 1;
+  } else if (!lastDate) {
+    stats.streak = 1;
+  }
+  saveStats();
+  document.getElementById('streakBadge').innerHTML = `&#x1F525; 连续 ${stats.streak} 天`;
+}
+
+function getDateString(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
+}
+
+function renderStats() {
+  const today = getDateString();
+  const todayCount = stats.dailyCounts[today] || 0;
+  const todayDur = stats.dailyDurations[today] || 0;
+  document.getElementById('statToday').textContent = todayCount;
+  document.getElementById('statTodayDuration').textContent = formatDuration(todayDur);
+  document.getElementById('statTotal').textContent = stats.totalCompleted;
+  document.getElementById('statAvgTime').textContent = stats.totalCompleted > 0 ? formatDuration(Math.round(stats.totalDuration / stats.totalCompleted)) : '0秒';
+  document.getElementById('statStreak').textContent = stats.streak;
+
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - 6);
+  let weekCount = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    weekCount += stats.dailyCounts[d.toISOString().split('T')[0]] || 0;
+  }
+  document.getElementById('statWeekly').textContent = weekCount;
+}
+
+function renderWeeklyChart() {
+  const container = document.getElementById('weeklyChart');
+  const days = [];
+  const counts = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    days.push(d.toLocaleDateString('zh-CN', { weekday: 'short' }));
+    counts.push(stats.dailyCounts[dateStr] || 0);
+  }
+  const maxCount = Math.max(...counts, 1);
+
+  container.innerHTML = days.map((day, i) => `
+    <div class="chart-bar-wrap">
+      <div class="chart-count">${counts[i]}</div>
+      <div class="chart-bar" style="height:${(counts[i] / maxCount) * 100}%;background:${counts[i] > 0 ? 'var(--primary)' : '#ddd'};"></div>
+      <div class="chart-label">${day}</div>
+    </div>
+  `).join('');
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (history.length === 0) {
+    container.innerHTML = '<div class="empty-state">暂无记录，快去练习吧</div>';
+    return;
+  }
+  container.innerHTML = history.slice(0, 20).map(h => `
+    <div class="history-item">
+      <div>
+        <div style="font-weight:500">${escapeHtml(h.chinese)}...</div>
+        <div style="color:var(--text-secondary);font-size:11px;">→ ${escapeHtml(h.userTranslation)}...</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="history-date">${h.date}</div>
+        <div style="font-size:11px;color:var(--primary);">${h.duration > 0 ? formatDuration(h.duration) : ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function clearStats() {
+  if (confirm('确定要清除所有统计数据吗？此操作不可恢复。')) {
+    stats = defaultStats();
+    history = [];
+    saveStats();
+    saveHistory();
+    renderStats();
+    renderWeeklyChart();
+    renderHistory();
+    document.getElementById('streakBadge').innerHTML = '&#x1F525; 连续 0 天';
+    showToast('统计数据已清除');
+  }
+}
+
+// ========== QUESTION BANK ==========
+function renderBank() {
+  const cat = document.getElementById('bankCategoryFilter').value;
+  const filtered = cat === 'all' ? sentences : sentences.filter(s => s.category === cat);
+  const tbody = document.getElementById('sentenceTableBody');
+
+  tbody.innerHTML = filtered.map(s => `
+    <tr>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:#e3f2fd;color:#1565c0;">${CATEGORY_NAMES[s.category] || s.category}</span></td>
+      <td>${escapeHtml(s.chinese)}</td>
+      <td style="color:var(--text-secondary);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(s.english)}</td>
+      <td class="actions">
+        <button class="btn btn-ghost btn-small" onclick="editSentence('${s.id}')" title="编辑">&#x270F;&#xFE0F;</button>
+        <button class="btn btn-ghost btn-small" onclick="deleteSentence('${s.id}')" title="删除" style="color:var(--error);">&#x1F5D1;</button>
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('bankCount').textContent = filtered.length;
+}
+
+function toggleAddForm() {
+  const form = document.getElementById('addForm');
+  form.classList.toggle('show');
+  if (form.classList.contains('show')) {
+    document.getElementById('newChinese').value = '';
+    document.getElementById('newEnglish').value = '';
+    document.getElementById('newChinese').focus();
+  }
+  // Clear edit mode
+  delete form.dataset.editId;
+}
+
+function addSentence() {
+  const form = document.getElementById('addForm');
+  const chinese = document.getElementById('newChinese').value.trim();
+  const english = document.getElementById('newEnglish').value.trim();
+  const category = document.getElementById('newCategory').value;
+
+  if (!chinese || !english) { showToast('请填写中文句子和英文翻译'); return; }
+
+  const editId = form.dataset.editId;
+  if (editId) {
+    const idx = sentences.findIndex(s => s.id === editId);
+    if (idx >= 0) {
+      sentences[idx].chinese = chinese;
+      sentences[idx].english = english;
+      sentences[idx].category = category;
+    }
+    delete form.dataset.editId;
+  } else {
+    const id = 's' + Date.now();
+    sentences.push({ id, chinese, english, category });
+  }
+
+  saveSentences();
+  updateFilteredIndices();
+  renderBank();
+  renderPractice();
+  toggleAddForm();
+  showToast(editId ? '句子已更新' : '句子已添加');
+}
+
+function editSentence(id) {
+  const sentence = sentences.find(s => s.id === id);
+  if (!sentence) return;
+
+  const form = document.getElementById('addForm');
+  form.classList.add('show');
+  form.dataset.editId = id;
+  document.getElementById('newChinese').value = sentence.chinese;
+  document.getElementById('newEnglish').value = sentence.english;
+  document.getElementById('newCategory').value = sentence.category;
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function deleteSentence(id) {
+  if (!confirm('确定要删除这个句子吗？')) return;
+  sentences = sentences.filter(s => s.id !== id);
+  saveSentences();
+  updateFilteredIndices();
+  renderBank();
+  renderPractice();
+  showToast('句子已删除');
+}
+
+function importJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!Array.isArray(data)) throw new Error('格式错误');
+        const valid = data.filter(item => item.chinese && item.english);
+        if (valid.length === 0) { showToast('未找到有效句子，请检查 JSON 格式'); return; }
+        valid.forEach(item => {
+          if (!item.id) item.id = 's' + Date.now() + Math.random().toString(36).substr(2, 5);
+          if (!item.category) item.category = 'ielts';
+        });
+        sentences = [...sentences, ...valid];
+        saveSentences();
+        updateFilteredIndices();
+        renderBank();
+        renderPractice();
+        showToast(`成功导入 ${valid.length} 个句子`);
+      } catch (err) {
+        showToast('JSON 解析失败: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(sentences, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'translation-sentences-' + getDateString() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('题库已导出');
+}
+
+function resetToDefault() {
+  if (!confirm('确定要恢复为默认题库吗？你自定义的句子将会丢失。')) return;
+  sentences = JSON.parse(JSON.stringify(DEFAULT_SENTENCES));
+  saveSentences();
+  updateFilteredIndices();
+  currentIndex = 0;
+  renderBank();
+  renderPractice();
+  showToast('已恢复默认题库（' + sentences.length + ' 句）');
+}
+
+// ========== TOAST ==========
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ========== START ==========
+init();
+</script>
+
+</body>
+</html>
