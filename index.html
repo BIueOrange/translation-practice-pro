@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>中译英翻译练习</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,6 +19,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .app-header { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
 .app-header h1 { font-size: 18px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 .app-header h1 span { font-size: 22px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.theme-toggle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--card-bg); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.theme-toggle:hover { background: #f0f0eb; border-color: var(--primary); }
 .streak-badge { font-size: 13px; color: var(--warning); font-weight: 600; background: #fff8e1; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
 
 .container { max-width: 960px; margin: 0 auto; padding: 20px; }
@@ -60,7 +63,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 /* Comparison */
 .comparison { display: none; margin-top: 20px; }
 .comparison.show { display: block; }
-.comp-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.comp-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.comp-score { margin-left: auto; font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+.comp-score.high { color: #2e7d32; }
+.comp-score.mid { color: #e65100; }
+.comp-score.low { color: #c62828; }
 
 .grammar-panel { margin-top: 16px; padding: 16px; border-radius: var(--radius); background: #fafaf7; border: 1px solid var(--border); display: none; }
 .grammar-panel.show { display: block; }
@@ -140,36 +147,75 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 
 /* Responsive */
 @media (max-width: 640px) {
-  .container { padding: 12px; }
-  .word-chip { font-size: 13px; padding: 3px 7px; }
-  .sentence-text { font-size: 18px; }
+  .container { padding: 8px; }
+  .app-header { padding: 0 12px; height: 48px; }
+  .app-header h1 { font-size: 15px; }
+  .practice-area { padding: 16px; border-radius: 8px; }
+  .tabs { margin-bottom: 10px; padding: 3px; }
+  .tab-btn { padding: 8px 10px; font-size: 12px; }
+  .sentence-card { padding: 16px; }
+  .sentence-text { font-size: 17px; }
+  .category-tag { top: 8px; right: 8px; font-size: 10px; padding: 2px 8px; }
+  .translation-input { min-height: 180px; font-size: 16px; padding: 14px; }
+  .toolbar { gap: 6px; margin-bottom: 12px; }
   .toolbar select, .toolbar button { font-size: 12px; padding: 6px 10px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .word-chip { font-size: 12px; padding: 3px 6px; margin: 2px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 14px; }
+  .stat-number { font-size: 28px; }
   .form-row { grid-template-columns: 1fr; }
   .sentence-table { font-size: 11px; }
   .sentence-table th, .sentence-table td { padding: 6px 8px; }
+  .comp-score { font-size: 22px; }
 }
 
+/* Dark mode */
+:root[data-theme="dark"] {
+  --bg: #1a1a1a; --card-bg: #252525; --text: #e0e0e0; --text-secondary: #999;
+  --border: #3a3a3a; --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #1a1a1a; --card-bg: #252525; --text: #e0e0e0; --text-secondary: #999;
     --border: #3a3a3a; --shadow: 0 1px 3px rgba(0,0,0,0.3);
   }
-  .sentence-card { background: linear-gradient(135deg, #2a2a2a 0%, #222 100%); }
-  .chip-match { background: #1b5e20; border-color: #388e3c; color: #a5d6a7; }
-  .chip-wrong { background: #b71c1c; border-color: #d32f2f; color: #ffcdd2; }
-  .chip-miss { background: #5d4e00; border-color: #9e8d00; color: #fff9c4; }
-  .tab-btn:hover:not(.active) { background: #333; }
-  .btn-outline:hover { background: #333; }
-  .btn-ghost:hover { background: #333; }
+  :root:not([data-theme="light"]) .sentence-card { background: linear-gradient(135deg, #2a2a2a 0%, #222 100%); }
+  :root:not([data-theme="light"]) .chip-match { background: #1b5e20; border-color: #388e3c; color: #a5d6a7; }
+  :root:not([data-theme="light"]) .chip-wrong { background: #b71c1c; border-color: #d32f2f; color: #ffcdd2; }
+  :root:not([data-theme="light"]) .chip-miss { background: #5d4e00; border-color: #9e8d00; color: #fff9c4; }
+  :root:not([data-theme="light"]) .tab-btn:hover:not(.active) { background: #333; }
+  :root:not([data-theme="light"]) .btn-outline:hover { background: #333; }
+  :root:not([data-theme="light"]) .btn-ghost:hover { background: #333; }
+  :root:not([data-theme="light"]) .grammar-panel { background: #2a2a2a; }
+  :root:not([data-theme="light"]) .issue-error { background: #3e1515; }
+  :root:not([data-theme="light"]) .issue-warn { background: #3e3000; }
+  :root:not([data-theme="light"]) .issue-info { background: #152a3e; }
 }
+
+:root[data-theme="dark"] .sentence-card { background: linear-gradient(135deg, #2a2a2a 0%, #222 100%); }
+:root[data-theme="dark"] .chip-match { background: #1b5e20; border-color: #388e3c; color: #a5d6a7; }
+:root[data-theme="dark"] .chip-wrong { background: #b71c1c; border-color: #d32f2f; color: #ffcdd2; }
+:root[data-theme="dark"] .chip-miss { background: #5d4e00; border-color: #9e8d00; color: #fff9c4; }
+:root[data-theme="dark"] .tab-btn:hover:not(.active) { background: #333; }
+:root[data-theme="dark"] .btn-outline:hover { background: #333; }
+:root[data-theme="dark"] .btn-ghost:hover { background: #333; }
+:root[data-theme="dark"] .grammar-panel { background: #2a2a2a; }
+:root[data-theme="dark"] .issue-error { background: #3e1515; }
+:root[data-theme="dark"] .issue-warn { background: #3e3000; }
+:root[data-theme="dark"] .issue-info { background: #152a3e; }
+:root[data-theme="dark"] .comp-score.high { color: #69f0ae; }
+:root[data-theme="dark"] .comp-score.mid { color: #ffab40; }
+:root[data-theme="dark"] .comp-score.low { color: #ff5252; }
 </style>
 </head>
 <body>
 
 <div class="app-header">
   <h1><span>&#x1F310;</span> 中译英翻译练习</h1>
-  <div class="streak-badge" id="streakBadge">&#x1F525; 连续 0 天</div>
+  <div class="header-right">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换暗色/亮色模式">&#x1F31E;</button>
+    <div class="streak-badge" id="streakBadge">&#x1F525; 连续 0 天</div>
+  </div>
 </div>
 
 <div class="container">
@@ -216,7 +262,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
       </div>
 
       <div class="comparison" id="comparison">
-        <div class="comp-title">&#x1F4CB; 对比结果 — <span style="font-weight:400;font-size:12px;"><span style="color:#2e7d32">&#x25A0;匹配</span> <span style="color:#c62828">&#x25A0;你的错误</span> <span style="color:#6d5b00">&#x25A0;参考答案</span></span></div>
+        <div class="comp-title">&#x1F4CB; 对比结果 — <span style="font-weight:400;font-size:12px;"><span style="color:#2e7d32">&#x25A0;匹配</span> <span style="color:#c62828">&#x25A0;你的错误</span> <span style="color:#6d5b00">&#x25A0;参考答案</span></span><span class="comp-score" id="compScore"></span></div>
         <div class="row-your"><div class="word-row-label">&#x270D;&#xFE0F; 你的翻译</div><div class="word-row" id="yourTranslation"></div></div>
         <div class="row-ref"><div class="word-row-label">&#x2728; 参考译文</div><div class="word-row" id="refTranslation"></div></div>
         <div class="grammar-panel" id="grammarPanel">
@@ -543,6 +589,7 @@ function renderPractice() {
     `${(currentIndex % Math.max(1, filteredIndices.length)) + 1} / ${filteredIndices.length}`;
   document.getElementById('comparison').classList.remove('show');
   document.getElementById('grammarPanel').classList.remove('show');
+  document.getElementById('compScore').textContent = '';
   document.getElementById('translationInput').value = '';
   document.getElementById('translationInput').focus();
   practiceStartTime = Date.now();
@@ -669,6 +716,19 @@ function submitTranslation() {
 
   document.getElementById('yourTranslation').innerHTML = buildWordChips(userTokens, userMatch, 'your');
   document.getElementById('refTranslation').innerHTML = buildWordChips(refTokens, refMatch, 'ref');
+
+  // Calculate score
+  const refWordCount = refTokens.filter(t => t.type === 'word').length;
+  const matchedUser = userMatch.filter(m => m >= 0).length;
+  const matchedRef = refMatch.filter(m => m >= 0).length;
+  const score = refWordCount > 0 ? Math.round((matchedRef / refWordCount) * 100) : 0;
+  const scoreEl = document.getElementById('compScore');
+  let cls, emoji;
+  if (score >= 80) { cls = 'high'; emoji = '\u{1F3AF}'; }
+  else if (score >= 50) { cls = 'mid'; emoji = '\u{1F4AA}'; }
+  else { cls = 'low'; emoji = '\u{1F50D}'; }
+  scoreEl.className = 'comp-score ' + cls;
+  scoreEl.innerHTML = `${emoji} ${score}%`;
 
   // Record practice with duration
   const duration = Math.round((Date.now() - practiceStartTime) / 1000);
@@ -1116,7 +1176,26 @@ function showToast(msg) {
   toast._timeout = setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
+// ========== THEME ==========
+function getTheme() {
+  const stored = localStorage.getItem('translation_practice_theme');
+  if (stored) return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').innerHTML = theme === 'dark' ? '&#x1F31E;' : '&#x1F31E;';
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '\u{1F319}' : '\u{1F31E}';
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('translation_practice_theme', next);
+  applyTheme(next);
+}
+
 // ========== START ==========
+applyTheme(getTheme());
 init();
 </script>
 
