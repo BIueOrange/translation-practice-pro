@@ -436,19 +436,26 @@ let supabase = null;
 let authMode = 'login'; // 'login' | 'signup'
 
 try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  if (window.supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
 } catch (e) {
   console.error('Supabase init error:', e);
 }
 
 async function checkAuth() {
-  if (!supabase) { showApp(); return; }
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    showApp();
-    document.getElementById('authUserEmail').textContent = session.user.email;
-    document.getElementById('btnLogout').style.display = '';
-  } else {
+  if (!supabase) { showAuth(); return; }
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      showApp();
+      document.getElementById('authUserEmail').textContent = session.user.email;
+      document.getElementById('btnLogout').style.display = '';
+    } else {
+      showAuth();
+    }
+  } catch (e) {
+    console.error('Auth check error:', e);
     showAuth();
   }
 }
@@ -689,7 +696,7 @@ function init() {
   renderHistory();
   }).catch(e => {
     console.error('Init error:', e);
-    showApp(); // fallback: show app without auth
+    showAuth(); // fallback: show login screen
   });
   } catch (e) {
     console.error('Init error:', e);
