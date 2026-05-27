@@ -5,12 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>DualLingo</title>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-// CDN fallback
-if (typeof window.supabase === 'undefined') {
-  document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');
-}
-</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -441,28 +435,64 @@ const SUPABASE_KEY = 'sb_publishable_rhTFBTn27O3OaMGrYGvpjQ_FHvGp9cn';
 let supabase = null;
 let authMode = 'login'; // 'login' | 'signup'
 
-try {
-  if (window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+function initSupabase() {
+  try {
+    if (window.supabase && window.supabase.createClient) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      if (supabase) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session) {
+            document.getElementById('authUserEmail').textContent = session.user.email;
+            document.getElementById('btnLogout').style.display = '';
+            showApp();
+            initApp();
+          } else if (event === 'SIGNED_OUT') {
+            document.getElementById('authUserEmail').textContent = '';
+            document.getElementById('btnLogout').style.display = 'none';
+            showAuth();
+          }
+        });
+      }
+      return true;
+    }
+  } catch (e) {
+    console.error('Supabase init error:', e);
   }
-} catch (e) {
-  console.error('Supabase init error:', e);
+  return false;
+}
+
+// Retry init up to 20 times (10 seconds) for slow CDN
+let initAttempts = 0;
+function tryInitSupabase() {
+  if (initSupabase()) {
+    checkAuth().then(session => { if (session) initApp(); });
+    return;
+  }
+  initAttempts++;
+  if (initAttempts < 20) {
+    setTimeout(tryInitSupabase, 500);
+  } else {
+    showAuth();
+  }
 }
 
 async function checkAuth() {
-  if (!supabase) { showAuth(); return; }
+  if (!supabase) { showAuth(); return null; }
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       showApp();
       document.getElementById('authUserEmail').textContent = session.user.email;
       document.getElementById('btnLogout').style.display = '';
+      return session;
     } else {
       showAuth();
+      return null;
     }
   } catch (e) {
     console.error('Auth check error:', e);
     showAuth();
+    return null;
   }
 }
 
@@ -543,21 +573,6 @@ async function handleLogout() {
   document.getElementById('authUserEmail').textContent = '';
   document.getElementById('btnLogout').style.display = 'none';
   showAuth();
-}
-
-// Listen for auth state changes
-if (supabase) {
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      document.getElementById('authUserEmail').textContent = session.user.email;
-      document.getElementById('btnLogout').style.display = '';
-      showApp();
-    } else if (event === 'SIGNED_OUT') {
-      document.getElementById('authUserEmail').textContent = '';
-      document.getElementById('btnLogout').style.display = 'none';
-      showAuth();
-    }
-  });
 }
 
 // ========== DATA ==========
@@ -690,8 +705,11 @@ let direction = 'cn2en'; // 'cn2en' | 'en2cn'
 
 // ========== INIT ==========
 function init() {
+  tryInitSupabase();
+}
+
+function initApp() {
   try {
-  checkAuth().then(() => {
   loadSentences();
   loadStats();
   loadHistory();
@@ -704,10 +722,6 @@ function init() {
   renderBank();
   renderWeeklyChart();
   renderHistory();
-  }).catch(e => {
-    console.error('Init error:', e);
-    showAuth(); // fallback: show login screen
-  });
   } catch (e) {
     console.error('Init error:', e);
     // Reset corrupted data and retry
