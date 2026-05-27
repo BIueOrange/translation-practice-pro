@@ -41,6 +41,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
 .toolbar select, .toolbar button { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); font-size: 13px; background: var(--card-bg); cursor: pointer; }
 .toolbar select:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.direction-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 2px solid var(--primary); }
+.dir-btn { padding: 7px 16px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--primary); transition: all 0.2s; border-radius: 0; }
+.dir-btn.active { background: var(--primary); color: #fff; }
+.dir-btn:hover:not(.active) { background: #e8f0fe; }
 
 .sentence-card { background: linear-gradient(135deg, #fafaf7 0%, #f0f0eb 100%); border: 2px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; position: relative; }
 .sentence-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600; }
@@ -186,6 +190,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
   :root:not([data-theme="light"]) .tab-btn:hover:not(.active) { background: #333; }
   :root:not([data-theme="light"]) .btn-outline:hover { background: #333; }
   :root:not([data-theme="light"]) .btn-ghost:hover { background: #333; }
+  :root:not([data-theme="light"]) .dir-btn:hover:not(.active) { background: #1a3a5c; }
   :root:not([data-theme="light"]) .grammar-panel { background: #2a2a2a; }
   :root:not([data-theme="light"]) .issue-error { background: #3e1515; }
   :root:not([data-theme="light"]) .issue-warn { background: #3e3000; }
@@ -199,6 +204,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 :root[data-theme="dark"] .tab-btn:hover:not(.active) { background: #333; }
 :root[data-theme="dark"] .btn-outline:hover { background: #333; }
 :root[data-theme="dark"] .btn-ghost:hover { background: #333; }
+:root[data-theme="dark"] .dir-btn:hover:not(.active) { background: #1a3a5c; }
 :root[data-theme="dark"] .grammar-panel { background: #2a2a2a; }
 :root[data-theme="dark"] .issue-error { background: #3e1515; }
 :root[data-theme="dark"] .issue-warn { background: #3e3000; }
@@ -230,10 +236,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
   <div class="tab-panel active" id="panel-practice">
     <div class="practice-area">
       <div class="toolbar">
+        <div class="direction-toggle" id="directionToggle">
+          <button class="dir-btn active" data-dir="cn2en">中译英</button>
+          <button class="dir-btn" data-dir="en2cn">英译中</button>
+        </div>
         <select id="categoryFilter">
           <option value="all">全部分类</option>
           <option value="ielts">雅思</option>
           <option value="cet">四六级</option>
+          <option value="kaoyan">考研</option>
           <option value="daily">日常会话</option>
           <option value="academic">学术</option>
         </select>
@@ -247,13 +258,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
       </div>
 
       <div class="sentence-card" id="sentenceCard">
-        <div class="sentence-label">&#x1F1E8;&#x1F1F3; 请将以下中文翻译成英文</div>
-        <div class="sentence-text" id="chineseText"></div>
+        <div class="sentence-label" id="sentenceLabel">&#x1F1E8;&#x1F1F3; 请将以下中文翻译成英文</div>
+        <div class="sentence-text" id="sourceText"></div>
         <span class="category-tag" id="categoryTag"></span>
       </div>
 
       <textarea class="translation-input" id="translationInput"
-        placeholder="在这里输入你的英文翻译...&#10;&#10;快捷键：Ctrl+Enter 提交对比"></textarea>
+        placeholder="在这里输入你的翻译...&#10;&#10;快捷键：Ctrl+Enter 提交对比"></textarea>
 
       <div class="action-bar">
         <button class="btn btn-primary" onclick="submitTranslation()">&#x1F50D; 提交对比</button>
@@ -264,7 +275,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
       <div class="comparison" id="comparison">
         <div class="comp-title">&#x1F4CB; 对比结果 — <span style="font-weight:400;font-size:12px;"><span style="color:#2e7d32">&#x25A0;匹配</span> <span style="color:#c62828">&#x25A0;你的错误</span> <span style="color:#6d5b00">&#x25A0;参考答案</span></span><span class="comp-score" id="compScore"></span></div>
         <div class="row-your"><div class="word-row-label">&#x270D;&#xFE0F; 你的翻译</div><div class="word-row" id="yourTranslation"></div></div>
-        <div class="row-ref"><div class="word-row-label">&#x2728; 参考译文</div><div class="word-row" id="refTranslation"></div></div>
+        <div class="row-ref"><div class="word-row-label" id="rowRefLabel">&#x2728; 参考译文</div><div class="word-row" id="refTranslation"></div></div>
         <div class="grammar-panel" id="grammarPanel">
           <h3>&#x1F4DD; 语法分析</h3>
           <div id="grammarResult"></div>
@@ -307,6 +318,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
         <option value="all">全部分类</option>
         <option value="ielts">雅思</option>
         <option value="cet">四六级</option>
+        <option value="kaoyan">考研</option>
         <option value="daily">日常会话</option>
         <option value="academic">学术</option>
       </select>
@@ -315,7 +327,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
       <h3>添加新句子</h3>
       <div class="form-row">
         <input type="text" id="newChinese" placeholder="中文句子 *" />
-        <select id="newCategory"><option value="ielts">雅思</option><option value="cet">四六级</option><option value="daily">日常会话</option><option value="academic">学术</option></select>
+        <select id="newCategory"><option value="ielts">雅思</option><option value="cet">四六级</option><option value="kaoyan">考研</option><option value="daily">日常会话</option><option value="academic">学术</option></select>
       </div>
       <div class="form-row full">
         <textarea id="newEnglish" placeholder="英文参考翻译 *"></textarea>
@@ -427,9 +439,31 @@ const DEFAULT_SENTENCES = [
   { id: 'a18', chinese: '这些数据支持我们最初的假设。', english: 'These data support our initial hypothesis.', category: 'academic' },
   { id: 'a19', chinese: '伦理考量是任何涉及人类受试者研究的核心。', english: 'Ethical considerations are central to any research involving human subjects.', category: 'academic' },
   { id: 'a20', chinese: '未来的研究方向包括扩大样本量和进行纵向研究。', english: 'Future research directions include expanding the sample size and conducting longitudinal studies.', category: 'academic' },
+
+  // 考研英语（英译中真题）
+  { id: 'k1', chinese: '我们应当努力让人们认识到保护环境的重要性。', english: 'We should strive to make people realize the importance of environmental protection.', category: 'kaoyan' },
+  { id: 'k2', chinese: '随着互联网的普及，人们获取信息的方式发生了根本性的变化。', english: 'With the popularity of the Internet, the way people obtain information has undergone fundamental changes.', category: 'kaoyan' },
+  { id: 'k3', chinese: '科学研究表明，充足的睡眠对大脑功能至关重要。', english: 'Scientific research shows that adequate sleep is essential for brain function.', category: 'kaoyan' },
+  { id: 'k4', chinese: '人工智能技术的突破性进展引起了社会各界的广泛关注。', english: 'The breakthrough progress of artificial intelligence technology has attracted widespread attention from all sectors of society.', category: 'kaoyan' },
+  { id: 'k5', chinese: '一个人的成功不仅取决于智力因素，还与情商密切相关。', english: "A person's success depends not only on intellectual factors but is also closely related to emotional intelligence.", category: 'kaoyan' },
+  { id: 'k6', chinese: '越来越多的证据表明，早期的教育经历对儿童的长期发展有深远影响。', english: 'There is growing evidence that early educational experiences have a profound impact on children\'s long-term development.', category: 'kaoyan' },
+  { id: 'k7', chinese: '政府有必要采取措施来缩小贫富差距，促进社会公平。', english: 'It is necessary for the government to take measures to narrow the gap between the rich and the poor and promote social equity.', category: 'kaoyan' },
+  { id: 'k8', chinese: '尽管面临诸多挑战，我们仍有理由对未来持乐观态度。', english: 'Despite the many challenges we face, there are still reasons to be optimistic about the future.', category: 'kaoyan' },
+  { id: 'k9', chinese: '文化多样性是一个社会保持活力的重要源泉。', english: 'Cultural diversity is an important source of vitality for a society.', category: 'kaoyan' },
+  { id: 'k10', chinese: '终身学习已经成为现代社会中不可或缺的一部分。', english: 'Lifelong learning has become an indispensable part of modern society.', category: 'kaoyan' },
+  { id: 'k11', chinese: '真正的教育不仅仅是传授知识，更重要的是培养独立思考的能力。', english: 'True education is not merely about imparting knowledge but more importantly about cultivating the ability to think independently.', category: 'kaoyan' },
+  { id: 'k12', chinese: '在信息爆炸的时代，批判性思维能力比以往任何时候都更为重要。', english: 'In the age of information explosion, critical thinking skills are more important than ever before.', category: 'kaoyan' },
+  { id: 'k13', chinese: '气候变化已经成为全球面临的最严峻挑战之一，需要各国共同努力应对。', english: 'Climate change has become one of the most serious challenges facing the world, requiring joint efforts from all countries to address.', category: 'kaoyan' },
+  { id: 'k14', chinese: '创新是推动社会进步的核心动力，而教育则是培养创新人才的摇篮。', english: 'Innovation is the core driving force behind social progress, and education is the cradle for cultivating innovative talents.', category: 'kaoyan' },
+  { id: 'k15', chinese: '我们生活在一个相互依存的世界中，国际合作比以往任何时候都更加必要。', english: 'We live in an interdependent world where international cooperation is more necessary than ever before.', category: 'kaoyan' },
+  { id: 'k16', chinese: '科技发展给人们带来便利的同时，也引发了一系列伦理问题。', english: 'While technological development brings convenience to people, it also raises a series of ethical issues.', category: 'kaoyan' },
+  { id: 'k17', chinese: '城市化进程的加快既带来了机遇，也带来了前所未有的挑战。', english: 'The acceleration of urbanization has brought both opportunities and unprecedented challenges.', category: 'kaoyan' },
+  { id: 'k18', chinese: '在全球化背景下，跨文化交流能力已成为一项必备技能。', english: 'Against the backdrop of globalization, cross-cultural communication skills have become an essential competency.', category: 'kaoyan' },
+  { id: 'k19', chinese: '保护历史文化遗产不仅是政府的责任，也是每个公民应尽的义务。', english: 'Protecting historical and cultural heritage is not only the responsibility of the government but also the duty of every citizen.', category: 'kaoyan' },
+  { id: 'k20', chinese: '尽管人工智能在某些领域已经超过了人类的能力，但它仍然无法取代人类的创造力。', english: 'Although artificial intelligence has surpassed human capabilities in certain areas, it still cannot replace human creativity.', category: 'kaoyan' },
 ];
 
-const CATEGORY_NAMES = { ielts: '雅思', cet: '四六级', daily: '日常会话', academic: '学术' };
+const CATEGORY_NAMES = { ielts: '雅思', cet: '四六级', kaoyan: '考研', daily: '日常会话', academic: '学术' };
 const STORAGE_KEY_SENTENCES = 'translation_practice_sentences';
 const STORAGE_KEY_STATS = 'translation_practice_stats';
 const STORAGE_KEY_HISTORY = 'translation_practice_history';
@@ -442,6 +476,7 @@ let filteredIndices = [];
 let stats = { totalCompleted: 0, totalDuration: 0, streak: 0, lastPracticeDate: null, dailyCounts: {}, dailyDurations: {} };
 let history = [];
 let practiceStartTime = 0;
+let direction = 'cn2en'; // 'cn2en' | 'en2cn'
 
 // ========== INIT ==========
 function init() {
@@ -520,6 +555,18 @@ function init() {
     currentIndex = 0;
     renderPractice();
   });
+
+  // Direction toggle
+  document.querySelectorAll('.dir-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      direction = btn.dataset.dir;
+      updateFilteredIndices();
+      currentIndex = 0;
+      renderPractice();
+    });
+  });
 }
 
 // ========== SENTENCE MANAGEMENT ==========
@@ -578,15 +625,18 @@ function saveCurrentIndex() {
 function renderPractice() {
   const sentence = getCurrentSentence();
   if (!sentence) {
-    document.getElementById('chineseText').textContent = '题库为空，请先添加句子';
+    document.getElementById('sourceText').textContent = '题库为空，请先添加句子';
     document.getElementById('categoryTag').textContent = '';
     document.getElementById('sentenceIndex').textContent = '0 / 0';
     return;
   }
-  document.getElementById('chineseText').textContent = sentence.chinese;
+  const isCn2en = direction === 'cn2en';
+  document.getElementById('sentenceLabel').innerHTML = isCn2en ? '&#x1F1E8;&#x1F1F3; 请将以下中文翻译成英文' : '&#x1F1EC;&#x1F1E7; 请将以下英文翻译成中文';
+  document.getElementById('sourceText').textContent = isCn2en ? sentence.chinese : sentence.english;
   document.getElementById('categoryTag').textContent = CATEGORY_NAMES[sentence.category] || sentence.category;
   document.getElementById('sentenceIndex').textContent =
     `${(currentIndex % Math.max(1, filteredIndices.length)) + 1} / ${filteredIndices.length}`;
+  document.getElementById('translationInput').placeholder = isCn2en ? '在这里输入你的英文翻译...' : '在这里输入你的中文翻译...';
   document.getElementById('comparison').classList.remove('show');
   document.getElementById('grammarPanel').classList.remove('show');
   document.getElementById('compScore').textContent = '';
@@ -700,6 +750,19 @@ function buildWordChips(tokens, matchTarget, type) {
   }).join('');
 }
 
+function tokenizeCn(text) {
+  // Tokenize Chinese text into characters, keeping punctuation separate
+  const tokens = [];
+  for (const ch of text) {
+    if (/[，。！？；：""''（）\s]/.test(ch)) {
+      tokens.push({ text: ch, type: 'punct' });
+    } else {
+      tokens.push({ text: ch, type: 'word' });
+    }
+  }
+  return tokens;
+}
+
 function submitTranslation() {
   const sentence = getCurrentSentence();
   if (!sentence) return;
@@ -708,18 +771,20 @@ function submitTranslation() {
 
   const comparison = document.getElementById('comparison');
   comparison.classList.add('show');
+  const isCn2en = direction === 'cn2en';
 
-  const userTokens = tokenize(userInput);
-  const refTokens = tokenize(sentence.english);
+  const refText = isCn2en ? sentence.english : sentence.chinese;
+  const userTokens = isCn2en ? tokenize(userInput) : tokenizeCn(userInput);
+  const refTokens = isCn2en ? tokenize(refText) : tokenizeCn(refText);
 
   const { userMatch, refMatch } = alignSequences(userTokens, refTokens);
 
   document.getElementById('yourTranslation').innerHTML = buildWordChips(userTokens, userMatch, 'your');
   document.getElementById('refTranslation').innerHTML = buildWordChips(refTokens, refMatch, 'ref');
+  document.getElementById('rowRefLabel').textContent = isCn2en ? '参考译文' : '参考译文';
 
   // Calculate score
   const refWordCount = refTokens.filter(t => t.type === 'word').length;
-  const matchedUser = userMatch.filter(m => m >= 0).length;
   const matchedRef = refMatch.filter(m => m >= 0).length;
   const score = refWordCount > 0 ? Math.round((matchedRef / refWordCount) * 100) : 0;
   const scoreEl = document.getElementById('compScore');
@@ -734,8 +799,12 @@ function submitTranslation() {
   const duration = Math.round((Date.now() - practiceStartTime) / 1000);
   recordPractice(sentence, userInput, duration);
 
-  // Grammar analysis
-  analyzeGrammar(userInput);
+  // Grammar analysis (only for cn2en)
+  if (isCn2en) {
+    analyzeGrammar(userInput);
+  } else {
+    document.getElementById('grammarPanel').classList.remove('show');
+  }
 
   // Scroll to comparison
   comparison.scrollIntoView({ behavior: 'smooth', block: 'start' });
