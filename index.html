@@ -151,7 +151,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .col-cat { width: 1%; white-space: nowrap; }
 .col-cn { word-break: break-word; }
 .col-en { word-break: break-word; color: var(--text-secondary); }
-.col-act { width: 56px; min-width: 56px; }
+.col-act { width: 56px; min-width: 56px; vertical-align: middle !important; }
 .cat-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e3f2fd; color: #1565c0; white-space: nowrap; }
 
 /* Toast */
@@ -179,7 +179,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
   .form-row { grid-template-columns: 1fr; }
   .sentence-table th, .sentence-table td { padding: 6px 8px; font-size: 12px; }
   .col-cat { width: 1%; white-space: nowrap; }
-  .col-act { width: 40px; min-width: 40px; }
+  .col-act { width: 40px; min-width: 40px; vertical-align: middle !important; }
   .comp-score { font-size: 22px; }
 }
 
@@ -339,6 +339,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
       <div class="stat-card"><div class="stat-number" id="statAvgTime">0秒</div><div class="stat-label">平均每题</div></div>
       <div class="stat-card"><div class="stat-number" id="statStreak">0</div><div class="stat-label">连续天数</div></div>
       <div class="stat-card"><div class="stat-number" id="statWeekly">0</div><div class="stat-label">本周练习</div></div>
+      <div class="stat-card"><div class="stat-number" id="statMonthly">0</div><div class="stat-label">本月练习</div></div>
+      <div class="stat-card"><div class="stat-number" id="statTotalDuration">0分</div><div class="stat-label">累计时长</div></div>
+      <div class="stat-card"><div class="stat-number" id="statPracticeDays">0</div><div class="stat-label">练习天数</div></div>
+      <div class="stat-card"><div class="stat-number" id="statBankSize">0</div><div class="stat-label">题库总数</div></div>
     </div>
     <div class="weekly-chart">
       <h3>&#x1F4C5; 最近7天练习量</h3>
@@ -1083,6 +1087,23 @@ function renderStats() {
     weekCount += stats.dailyCounts[d.toISOString().split('T')[0]] || 0;
   }
   document.getElementById('statWeekly').textContent = weekCount;
+
+  // Monthly count
+  const now = new Date();
+  let monthCount = 0;
+  for (const [date, count] of Object.entries(stats.dailyCounts)) {
+    if (date.startsWith(now.toISOString().slice(0, 7))) monthCount += count;
+  }
+  document.getElementById('statMonthly').textContent = monthCount;
+
+  // Total duration
+  document.getElementById('statTotalDuration').textContent = formatDuration(stats.totalDuration);
+
+  // Practice days (unique days)
+  document.getElementById('statPracticeDays').textContent = Object.keys(stats.dailyCounts).length;
+
+  // Bank size
+  document.getElementById('statBankSize').textContent = sentences.length;
 }
 
 function renderWeeklyChart() {
