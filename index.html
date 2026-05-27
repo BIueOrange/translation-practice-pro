@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>中译英翻译练习</title>
+<title>DualLingo</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -88,6 +88,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .issue-info::before { background: var(--primary); }
 .grammar-highlight { background: #ffcdd2; padding: 1px 2px; border-radius: 2px; text-decoration: underline wavy var(--error); }
 .gfix { color: var(--success); font-weight: 600; }
+.grammar-badge { font-size: 10px; color: var(--text-secondary); background: #eee; padding: 1px 6px; border-radius: 3px; flex-shrink: 0; }
 
 @media (prefers-color-scheme: dark) {
   .grammar-panel { background: #2a2a2a; }
@@ -101,6 +102,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .chip-wrong { background: #ffcdd2; border-color: #e57373; color: #c62828; }
 .chip-miss { background: #fff9c4; border-color: #ffd54f; color: #6d5b00; }
 .chip-punct { background: transparent; border: none; padding: 4px 2px; margin: 3px 0; color: var(--text-secondary); }
+.legend-match { color: #2e7d32; }
+.legend-wrong { color: #c62828; }
+.legend-miss { color: #6d5b00; }
 .word-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0; padding: 8px 0; min-height: 36px; }
 .word-row-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; padding: 2px 0; }
 .row-your .word-row-label { color: var(--primary); }
@@ -148,6 +152,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 .col-cn { word-break: break-word; }
 .col-en { word-break: break-word; color: var(--text-secondary); }
 .col-act { width: 56px; min-width: 56px; }
+.cat-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e3f2fd; color: #1565c0; white-space: nowrap; }
 
 /* Toast */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 13px; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
@@ -211,6 +216,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
   :root:not([data-theme="light"]) .streak-badge { background: #3e3000; color: #ffab40; }
   :root:not([data-theme="light"]) .theme-toggle:hover { background: #333; }
   :root:not([data-theme="light"]) select option { background: #333; color: #e0e0e0; }
+  :root:not([data-theme="light"]) .legend-match { color: #81c784; }
+  :root:not([data-theme="light"]) .legend-wrong { color: #ef9a9a; }
+  :root:not([data-theme="light"]) .legend-miss { color: #fff176; }
+  :root:not([data-theme="light"]) .grammar-badge { background: #444 !important; }
+  :root:not([data-theme="light"]) .cat-badge { background: #1a3a5c; color: #90caf9; }
 }
 
 :root[data-theme="dark"] .sentence-card { background: linear-gradient(135deg, #2a2a2a 0%, #222 100%); }
@@ -239,12 +249,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
 :root[data-theme="dark"] .streak-badge { background: #3e3000; color: #ffab40; }
 :root[data-theme="dark"] .theme-toggle:hover { background: #333; }
 :root[data-theme="dark"] select option { background: #333; color: #e0e0e0; }
+:root[data-theme="dark"] .legend-match { color: #81c784; }
+:root[data-theme="dark"] .legend-wrong { color: #ef9a9a; }
+:root[data-theme="dark"] .legend-miss { color: #fff176; }
+:root[data-theme="dark"] .grammar-badge { background: #444 !important; }
+:root[data-theme="dark"] .cat-badge { background: #1a3a5c; color: #90caf9; }
 </style>
 </head>
 <body>
 
 <div class="app-header">
-  <h1><span>&#x1F310;</span> 中译英翻译练习</h1>
+  <h1><span>&#x1F310;</span> DualLingo</h1>
   <div class="header-right">
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换暗色/亮色模式">&#x1F31E;</button>
     <div class="streak-badge" id="streakBadge">&#x1F525; 连续 0 天</div>
@@ -300,7 +315,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sa
       </div>
 
       <div class="comparison" id="comparison">
-        <div class="comp-title">&#x1F4CB; 对比结果 — <span style="font-weight:400;font-size:12px;"><span style="color:#2e7d32">&#x25A0;匹配</span> <span style="color:#c62828">&#x25A0;你的错误</span> <span style="color:#6d5b00">&#x25A0;参考答案</span></span><span class="comp-score" id="compScore"></span></div>
+        <div class="comp-title">&#x1F4CB; 对比结果 — <span style="font-weight:400;font-size:12px;"><span class="legend-match">&#x25A0;匹配</span> <span class="legend-wrong">&#x25A0;你的错误</span> <span class="legend-miss">&#x25A0;参考答案</span></span><span class="comp-score" id="compScore"></span></div>
         <div class="row-your"><div class="word-row-label">&#x270D;&#xFE0F; 你的翻译</div><div class="word-row" id="yourTranslation"></div></div>
         <div class="row-ref"><div class="word-row-label" id="rowRefLabel">&#x2728; 参考译文</div><div class="word-row" id="refTranslation"></div></div>
         <div class="grammar-panel" id="grammarPanel">
@@ -930,15 +945,15 @@ function analyzeGrammar(text) {
     let html = '';
     if (errors.length > 0) {
       html += `<p style="font-size:12px;color:var(--error);font-weight:600;margin-bottom:6px;">&#x26A0;&#xFE0F; 错误 (${errors.length})</p>`;
-      html += '<ul class="grammar-issues">' + errors.map(i => `<li class="issue-error"><span style="font-size:10px;color:var(--text-secondary);background:#eee;padding:1px 6px;border-radius:3px;flex-shrink:0;">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
+      html += '<ul class="grammar-issues">' + errors.map(i => `<li class="issue-error"><span style="font-size:10px;color:var(--text-secondary);padding:1px 6px;border-radius:3px;flex-shrink:0;" class="grammar-badge">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
     }
     if (warns.length > 0) {
       html += `<p style="font-size:12px;color:var(--warning);font-weight:600;margin-bottom:6px;">&#x26A0;&#xFE0F; 警告 (${warns.length})</p>`;
-      html += '<ul class="grammar-issues">' + warns.map(i => `<li class="issue-warn"><span style="font-size:10px;color:var(--text-secondary);background:#eee;padding:1px 6px;border-radius:3px;flex-shrink:0;">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
+      html += '<ul class="grammar-issues">' + warns.map(i => `<li class="issue-warn"><span style="font-size:10px;color:var(--text-secondary);padding:1px 6px;border-radius:3px;flex-shrink:0;" class="grammar-badge">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
     }
     if (infos.length > 0) {
       html += `<p style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:6px;">&#x2139;&#xFE0F; 建议 (${infos.length})</p>`;
-      html += '<ul class="grammar-issues">' + infos.map(i => `<li class="issue-info"><span style="font-size:10px;color:var(--text-secondary);background:#eee;padding:1px 6px;border-radius:3px;flex-shrink:0;">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
+      html += '<ul class="grammar-issues">' + infos.map(i => `<li class="issue-info"><span style="font-size:10px;color:var(--text-secondary);padding:1px 6px;border-radius:3px;flex-shrink:0;" class="grammar-badge">${escapeHtml(i.rule)}</span> ${i.msg}</li>`).join('') + '</ul>';
     }
     result.innerHTML = html;
   }
@@ -1082,7 +1097,7 @@ function renderWeeklyChart() {
   container.innerHTML = days.map((day, i) => `
     <div class="chart-bar-wrap">
       <div class="chart-count">${counts[i]}</div>
-      <div class="chart-bar" style="height:${(counts[i] / maxCount) * 100}%;background:${counts[i] > 0 ? 'var(--primary)' : '#ddd'};"></div>
+      <div class="chart-bar" style="height:${(counts[i] / maxCount) * 100}%;background:${counts[i] > 0 ? 'var(--primary)' : 'var(--border)'};"></div>
       <div class="chart-label">${day}</div>
     </div>
   `).join('');
@@ -1130,7 +1145,7 @@ function renderBank() {
 
   tbody.innerHTML = filtered.map(s => `
     <tr>
-      <td class="col-cat"><span style="font-size:11px;padding:2px 8px;border-radius:10px;background:#e3f2fd;color:#1565c0;">${CATEGORY_NAMES[s.category] || s.category}</span></td>
+      <td class="col-cat"><span class="cat-badge">${CATEGORY_NAMES[s.category] || s.category}</span></td>
       <td class="col-cn">${escapeHtml(s.chinese)}</td>
       <td class="col-en">${escapeHtml(s.english)}</td>
       <td class="col-act actions">
